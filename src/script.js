@@ -838,7 +838,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
         const response = await fetch("https://manuel-l01-inscoreapi.hf.space/upload", {
             method: "POST",
-            headers: {'Content-Type': 'application/json'},
             body: formData,
         });
         const result = await response.json();
