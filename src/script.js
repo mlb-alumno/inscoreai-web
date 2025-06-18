@@ -906,7 +906,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("end_time", selectedEndTime.toString());
         formData.append("top_p", top_p.toString());
     
-        const response = await fetch("http://localhost:5000/uploadinfill", {
+        const response = await fetch("https://manuel-l01-inscoreapi.hf.space/uploadinfill", {
             method: "POST",
             body: formData,
         });
@@ -977,7 +977,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("end_time", selectedEndTime.toString());
         formData.append("top_p", top_p.toString());
     
-        const response = await fetch("http://localhost:5000/uploadchangemelody", {
+        const response = await fetch("https://manuel-l01-inscoreapi.hf.space/uploadchangemelody", {
             method: "POST",
             body: formData,
         });
