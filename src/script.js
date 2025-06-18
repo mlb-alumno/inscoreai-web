@@ -836,8 +836,9 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("end_time", selectedEndTime.toString());
         formData.append("top_p", top_p.toString());
     
-        const response = await fetch("http://localhost:5000/upload", {
+        const response = await fetch("https://manuel-l01-inscoreapi.hf.space/upload", {
             method: "POST",
+            headers: {'Content-Type': 'application/json'},
             body: formData,
         });
         const result = await response.json();
