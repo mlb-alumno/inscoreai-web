@@ -46,6 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let connectionStatusElement = document.getElementById('connectionStatus');
     let statusLight = document.getElementById('statusLight');
     let statusText = document.getElementById('statusText');
+    let pressedNotes = new Set(); // Track currently pressed MIDI notes
+
 
     updateConnectionStatus(false);
     
@@ -1121,18 +1123,24 @@ document.addEventListener("DOMContentLoaded", () => {
     
     function handleMIDIMessage(message) {
         const [command, note, velocity] = message.data;
+        
         // Note-on event (144 = 0x90)
         if (command === 144 && velocity > 0) { 
-            if (isRestInput) {
-                addRestToScore(currentDuration);
-            } else {
-                const pitch = convertMIDIToPitch(note);
-                addNoteToScore(pitch, currentDuration);
+            // Only process if note wasn't already pressed
+            if (!pressedNotes.has(note)) {
+                pressedNotes.add(note);
+                
+                if (isRestInput) {
+                    addRestToScore(currentDuration);
+                } else {
+                    const pitch = convertMIDIToPitch(note);
+                    addNoteToScore(pitch, currentDuration);
+                }
             }
         }
         // Note-off event (128 = 0x80)
-        else if (command === 128) {
-            // Handle note-off if needed
+        else if (command === 128 || (command === 144 && velocity === 0)) {
+            pressedNotes.delete(note); // Remove from pressed notes
         }
     }
 
