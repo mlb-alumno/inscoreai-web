@@ -464,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderScore(meiData) {
         // Save current page before rendering
         const prevPage = currentPage;
+        const prevSelectedStaffId = selectedStaffId;
         
         // Load the MEI data
         tk.loadData(meiData);
@@ -479,11 +480,28 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("notation").innerHTML = tk.renderToSVG(currentPage);
         
         // Re-setup interactions
-        if (isEditMode) setupStaffSelection();
+        if (isEditMode && prevSelectedStaffId) {
+            const staffEl = document.getElementById(prevSelectedStaffId);
+            if (staffEl) {
+                staffEl.classList.add('staff-selected');
+                selectedStaffId = prevSelectedStaffId;
+            } else {
+                // Staff not found on this page - select first staff
+                const firstStaff = document.querySelector('#notation .staff');
+                if (firstStaff) {
+                    firstStaff.classList.add('staff-selected');
+                    selectedStaffId = firstStaff.id;
+                } else {
+                    selectedStaffId = null;
+                }
+            }
+        }
         setupMeasureInteraction();
         if (generationState.highlightVisible) {
                    requestAnimationFrame(() => setGeneratingHighlight(true));
                }
+
+        
     }
     function filterMEIByMeasures(meiXML, measureIds) {
         const parser = new DOMParser();
@@ -1066,6 +1084,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (e.key.toLowerCase() === 'r') {
                 isRestInput = !isRestInput;
                 updateDurationDisplay();
+                e.preventDefault();
+            }
+
+            else if (e.key === 'ArrowDown') {
+                navigateStaves('next');
+                e.preventDefault();
+            } else if (e.key === 'ArrowUp') {
+                navigateStaves('prev');
                 e.preventDefault();
             }
         });
@@ -1765,6 +1791,38 @@ function showGenerationOverlay(text) {
             statusLight.classList.add('status-offline');
             statusText.textContent = 'Offline';
         }
+    }
+
+    function getOrderedStaves() {
+        const staves = Array.from(document.querySelectorAll('#notation .staff'));
+        staves.sort((a, b) => {
+            const rectA = a.getBoundingClientRect();
+            const rectB = b.getBoundingClientRect();
+            return rectA.top - rectB.top || rectA.left - rectB.left;
+        });
+        return staves;
+    }
+
+    function navigateStaves(direction) {
+        if (!selectedStaffId) return;
+        
+        const allStaves = Array.from(document.querySelectorAll('#notation .staff'));
+        const currentStaffIndex = allStaves.findIndex(staff => staff.id === selectedStaffId);
+        
+        if (currentStaffIndex === -1) return;
+        
+        let newIndex;
+        if (direction === 'next') {
+            newIndex = (currentStaffIndex + 1) % allStaves.length;
+        } else {
+            newIndex = (currentStaffIndex - 1 + allStaves.length) % allStaves.length;
+        }
+        
+        const newStaff = allStaves[newIndex];
+        document.querySelectorAll('.staff-selected').forEach(s => s.classList.remove('staff-selected'));
+        newStaff.classList.add('staff-selected');
+        selectedStaffId = newStaff.id;
+        staffCleared = false;
     }
 
     
