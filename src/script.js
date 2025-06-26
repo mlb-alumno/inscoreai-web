@@ -1069,6 +1069,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateDurationDisplay();
                 e.preventDefault();
             }
+
+            if (e.key === 'Escape' && selectedStaffId) {
+                e.preventDefault();
+                clearSelectedStaffMeasure();
+            }
         });
     }
     
@@ -1774,6 +1779,80 @@ function showGenerationOverlay(text) {
             statusLight.classList.remove('status-online');
             statusLight.classList.add('status-offline');
             statusText.textContent = 'Offline';
+        }
+    }
+
+    function clearSelectedStaffMeasure() {
+        if (!selectedStaffId || !tk) return;
+    
+        // Save state for undo
+        historyStack.push(originalMEI);
+        if (historyStack.length > MAX_HISTORY) historyStack.shift();
+        redoStack = [];
+        updateButtonStates();
+    
+        try {
+            const currentMEI = tk.getMEI();
+            const parser = new DOMParser();
+            const meiDoc = parser.parseFromString(currentMEI, "text/xml");
+            
+            // Namespace resolver
+            const nsResolver = (prefix) => ({
+                'mei': 'http://www.music-encoding.org/ns/mei',
+                'xml': 'http://www.w3.org/XML/1998/namespace'
+            }[prefix]);
+    
+            // Find staff element
+            const xpath = `//mei:staff[@xml:id="${selectedStaffId}"]`;
+            const result = meiDoc.evaluate(
+                xpath,
+                meiDoc,
+                nsResolver,
+                XPathResult.FIRST_ORDERED_NODE_TYPE,
+                null
+            );
+            const staffElement = result.singleNodeValue;
+    
+            if (!staffElement) {
+                console.error('Staff not found');
+                return;
+            }
+    
+            const MEI_NS = 'http://www.music-encoding.org/ns/mei';
+            
+            // Find or create layer
+            let layerElement = staffElement.getElementsByTagNameNS(MEI_NS, 'layer')[0];
+            if (!layerElement) {
+                layerElement = meiDoc.createElementNS(MEI_NS, 'layer');
+                layerElement.setAttribute('xml:id', `layer_${Date.now()}`);
+                layerElement.setAttribute('n', '1');
+                staffElement.appendChild(layerElement);
+            }
+    
+            // Clear existing content
+            while (layerElement.firstChild) {
+                layerElement.removeChild(layerElement.firstChild);
+            }
+    
+            // Add whole measure rest (mRest)
+            const mRestElement = meiDoc.createElementNS(MEI_NS, 'mRest');
+            layerElement.appendChild(mRestElement);
+    
+            // Update Verovio
+            const updatedMEI = new XMLSerializer().serializeToString(meiDoc);
+            tk.loadData(updatedMEI);
+            originalMEI = updatedMEI;
+    
+            // Refresh display
+            tk.redoLayout();
+            document.getElementById('notation').innerHTML = tk.renderToSVG(currentPage);
+            setupMeasureInteraction();
+            if (isEditMode) setupStaffSelection();
+            broadcastUpdate();
+            staffCleared = true;
+    
+        } catch (error) {
+            console.error('Error clearing staff measure:', error);
         }
     }
 
