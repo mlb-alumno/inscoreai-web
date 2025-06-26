@@ -1197,9 +1197,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 staffElement.appendChild(layerElement);
             }
             if (!staffCleared) {
-                while (layerElement.firstChild) {
-                    layerElement.removeChild(layerElement.firstChild);
-                }
+                // Clear ALL layers in the staff
+                const layers = staffElement.getElementsByTagNameNS(MEI_NS, 'layer');
+                Array.from(layers).forEach(layer => {
+                    while (layer.firstChild) {
+                        layer.removeChild(layer.firstChild);
+                    }
+                });
                 staffCleared = true;
             }
     
@@ -1322,10 +1326,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 layerElement.setAttribute('n', '1');
                 staffElement.appendChild(layerElement);
             }
-            if (!staffCleared) {                 // first note after staff selection
-                while (layerElement.firstChild) {
-                    layerElement.removeChild(layerElement.firstChild);   // wipe old content
-                }
+            if (!staffCleared) {
+                // Clear ALL layers in the staff
+                const layers = staffElement.getElementsByTagNameNS(MEI_NS, 'layer');
+                Array.from(layers).forEach(layer => {
+                    while (layer.firstChild) {
+                        layer.removeChild(layer.firstChild);
+                    }
+                });
                 staffCleared = true;
             }
 
