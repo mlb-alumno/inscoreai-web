@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("mxlFile").addEventListener("change", handleFileUpload);
         
         // Download handlers
-        document.getElementById("downloadMeasureMidi").addEventListener("click", downloadMeasureMidi);
+        // document.getElementById("downloadMeasureMidi").addEventListener("click", downloadMeasureMidi);
         document.getElementById("downloadFullScore").addEventListener("click", downloadFullScore);
 
         // Toggle edit mode
@@ -1057,7 +1057,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
             } else if (e.key === '.') {
                 if (currentDuration) {
-                    currentDots = Math.min(currentDots + 1, 2); // Allow up to 2 dots
+                    // Cycle between 0, 1, and 2 dots
+                    currentDots = (currentDots + 1) % 3;
                     updateDurationDisplay();
                     e.preventDefault();
                 }
@@ -1259,13 +1260,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
     function convertMIDIToPitch(midiNote) {
         const octave = Math.floor(midiNote / 12) - 1;
-        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const notes = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
         const noteIndex = midiNote % 12;
         const noteName = notes[noteIndex];
+        
         return {
             pname: noteName[0].toLowerCase(),
             oct: octave.toString(),
-            accid: noteName.includes('#') ? 's' : null // 's' for sharp
+            accid: noteName.length > 1 ? 'f' : null // 'f' for flat
         };
     }
     
